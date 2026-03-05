@@ -138,6 +138,15 @@ export default function NusantaraTimeline() {
   const [visibleItems, setVisibleItems] = useState<number[]>([]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  // Simple media query hook
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -222,13 +231,14 @@ export default function NusantaraTimeline() {
       {/* Vertical spine */}
       <div style={{
         position: "absolute",
-        left: "50%",
+        left: isMobile ? "36px" : "50%",
         top: "220px",
         bottom: "80px",
         width: "1px",
         background: "linear-gradient(to bottom, transparent, rgba(212,175,55,0.3) 5%, rgba(212,175,55,0.3) 95%, transparent)",
         transform: "translateX(-50%)",
         zIndex: 1,
+        transition: "left 0.5s ease",
       }} />
 
       {/* Timeline */}
@@ -255,21 +265,24 @@ export default function NusantaraTimeline() {
               onMouseLeave={() => setHoveredIndex(null)}
               style={{
                 display: "flex",
-                flexDirection: isLeft ? "row" : "row-reverse",
+                flexDirection: isMobile ? "row-reverse" : (isLeft ? "row" : "row-reverse"),
                 alignItems: "flex-start",
-                marginBottom: "4px",
+                marginBottom: isMobile ? "32px" : "4px",
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible
                   ? "translateY(0)"
-                  : isLeft ? "translateX(-30px)" : "translateX(30px)",
+                  : isMobile 
+                    ? "translateY(30px)" 
+                    : (isLeft ? "translateX(-30px)" : "translateX(30px)"),
                 transition: `opacity 0.7s ease ${i * 0.07}s, transform 0.7s ease ${i * 0.07}s`,
                 cursor: "pointer",
                 position: "relative",
+                justifyContent: isMobile ? "flex-end" : "center",
               }}
             >
               {/* Content card */}
               <div style={{
-                width: "calc(50% - 48px)",
+                width: isMobile ? "calc(100% - 60px)" : "calc(50% - 48px)",
                 background: isActive
                   ? "rgba(212,175,55,0.08)"
                   : isHovered
@@ -279,6 +292,8 @@ export default function NusantaraTimeline() {
                 padding: "24px",
                 transition: "all 0.3s ease",
                 backdropFilter: "blur(8px)",
+                marginLeft: isMobile ? "12px" : "0",
+                marginRight: isMobile ? "0" : "0",
               }}>
                 {/* Era label */}
                 <div style={{
@@ -400,11 +415,11 @@ export default function NusantaraTimeline() {
 
               {/* Center node */}
               <div style={{
-                width: "96px",
+                width: isMobile ? "48px" : "96px",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "flex-start",
-                paddingTop: "20px",
+                paddingTop: isMobile ? "0" : "20px",
                 flexShrink: 0,
                 position: "relative",
               }}>
@@ -432,7 +447,7 @@ export default function NusantaraTimeline() {
               </div>
 
               {/* Spacer for opposite side */}
-              <div style={{ width: "calc(50% - 48px)" }} />
+              {!isMobile && <div style={{ width: "calc(50% - 48px)" }} />}
             </div>
           );
         })}
@@ -462,9 +477,6 @@ export default function NusantaraTimeline() {
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0D0A05; }
         ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 3px; }
-        @media (max-width: 640px) {
-          [data-mobile] { flex-direction: column !important; }
-        }
       `}</style>
     </div>
   );
